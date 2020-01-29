@@ -44,7 +44,10 @@ def parse_gps_data(gps_data):
 			sign = -1.0
 		else:
 			sign = 1.0
-		lat = sign*float(sections[LAT])/100.0
+		lat_minutes = sign*float(sections[LAT])/100.0
+		lat_integer = lat_minutes // 1
+		lat_frac = (lat_minutes % 1)*100.0
+		lat = lat_integer + (lat_frac/60.0)
 	except ValueError:
 		return msg
 	try:
@@ -52,7 +55,10 @@ def parse_gps_data(gps_data):
 			sign = -1.0
 		else:
 			sign = 1.0
-		lon = sign*float(sections[LON])/100.0
+		lon_minutes = sign*float(sections[LON])/100.0
+		lon_integer = lon_minutes // 1
+		lon_frac = (lon_minutes % 1)*100.0
+		lon = lon_integer + (lon_frac/60.0)
 	except ValueError:
 		return msg
 	try:
@@ -68,6 +74,7 @@ def parse_gps_data(gps_data):
 	except ValueError:
 		return msg
 	zone_let = utm_out[ZONE_LET]
+	msg.header.stamp = rospy.Time.now()
 	msg.lat = lat
 	msg.lon = lon
 	msg.alt = altitude
@@ -82,18 +89,18 @@ if __name__ == "__main__":
 	out = rospy.Publisher("/gps_out", GNSS, queue_size=10)
 	port_handle = rospy.get_param("~port","/dev/ttyUSB0")
 	baud_rate = rospy.get_param("~baudrate", 4800)
-	# try:
-	# 	port = serial.Serial(port_handle, baud_rate, timeout=3.0)
-	# except serial.serialutil.SerialException:
-	# 	rospy.loginfo("Serial port exception, shutting down gps_driver node...")
-	# 	sys.exit()
-	file_handle = open("data.txt", "r")
+	try:
+		port = serial.Serial(port_handle, baud_rate, timeout=3.0)
+	except serial.serialutil.SerialException:
+		rospy.loginfo("Serial port exception, shutting down gps_driver node...")
+		sys.exit()
+	# file_handle = open("data.txt", "r")
 	rospy.logdebug("Setting up serial port for GPS device, port = %s, baud rate = %s" % (port_handle, baud_rate))
 	rate = rospy.Rate(1)
 	try:
 		while not rospy.is_shutdown():
-			# line = port.readline()
-			line = file_handle.readline()
+			line = port.readline()
+			# line = file_handle.readline()
 			if line == "":
 				rospy.logwarn("GPS: no data")
 			else:
