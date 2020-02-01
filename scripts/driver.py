@@ -44,10 +44,12 @@ def parse_gps_data(gps_data):
 			sign = -1.0
 		else:
 			sign = 1.0
-		lat_minutes = sign*float(sections[LAT])/100.0
-		lat_integer = lat_minutes // 1
-		lat_frac = (lat_minutes % 1)*100.0
-		lat = lat_integer + (lat_frac/60.0)
+		raw_lat = sections[LAT]
+		idx = raw_lat.find('.') - 2
+		degree_part = float(raw_lat[:idx])
+		minutes_part = float(raw_lat[idx:])
+		dec_degrees = minutes_part / 60.0
+		lat = sign*(degree_part + dec_degrees)
 	except ValueError:
 		return msg
 	try:
@@ -55,10 +57,12 @@ def parse_gps_data(gps_data):
 			sign = -1.0
 		else:
 			sign = 1.0
-		lon_minutes = sign*float(sections[LON])/100.0
-		lon_integer = lon_minutes // 1
-		lon_frac = (lon_minutes % 1)*100.0
-		lon = lon_integer + (lon_frac/60.0)
+		raw_lon = sections[LON]
+		idx = raw_lon.find('.') - 2
+		degree_part = float(raw_lon[:idx])
+		minutes_part = float(raw_lon[idx:])
+		dec_degrees = minutes_part / 60.0
+		lon = sign*(degree_part + dec_degrees)
 	except ValueError:
 		return msg
 	try:
